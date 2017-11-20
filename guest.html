@@ -1,0 +1,90 @@
+<html>
+
+<head>
+  <title>Video chat(guest)</title>
+  <!--<link rel="stylesheet" href="style.css">-->
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+  <script src="http://cdn.peerjs.com/0.3/peer.js"></script>
+</head>
+
+<body>
+  <div>
+    <!--audio部分-->
+    <audio id="player" autoplay></audio>
+    <div>
+      <div>
+        <h3>Make a call</h3>
+        <div class="pure-form">
+          <input type="text" placeholder="Call user id..." id="callto-id">
+          <a href="#" class="pure-button pure-button-success" id="make-call">Call</a>
+        </div>
+      </div>
+      <div>
+        <!--<p>Currently in call with <span id="their-id">...</span></p>
+        <p><a href="#" class="pure-button pure-button-error" id="end-call">End call</a></p>-->
+      </div>
+    </div>
+  </div>
+</body>
+<script>
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+  navigator.mediaDevices.getUserMedia = navigator.mediaDevices.getUserMedia || navigator.mediaDevices.webkitGetUserMedia || navigator.mediaDevices.mozGetUserMedia;
+
+  // Create the instance of AudioContext
+  var source = document.getElementById('player');
+  var context = new AudioContext();
+  var delay = context.createDelay(5.0);
+  var destination = context.destination;
+
+  // 取得死体情報を指定
+  var medias = {
+    audio: true,
+    video: false
+  };
+
+  // PeerJSオブジェクト作成
+  var peer = new Peer(getRandomString(), {
+    key: 'nh93y733pow7y14i',
+    debug: 3
+  });
+
+  $(function() {
+    $('#make-call').click(function() {
+      // 以下　修正必要
+      let call = peer.call($('#callto-id').val(), source.mediaStream);
+      if (call != null) {
+        call.on('stream', function(stream) {
+          // ストリーミングデータ受信処理
+          // ここ↓の処理はまだです。
+          // RemoteVideo.srcObject = stream;
+        });
+      }
+    });
+    start_delay_communication();
+  });
+
+  function start_delay_communication() {
+    navigator.mediaDevices.getUserMedia(medias)
+      .then(function(stream) {
+        source = context.createMediaStreamSource(stream);
+        source.connect(delay);
+        delay.connect(destination);
+        delay.delayTime.value = 3.0
+      }).catch(function(error) {
+        console.log(error);
+      });
+  }
+
+  function getRandomString() {
+    // ランダムな文字列を生成する元の文字列
+    var BaseString = 'abcdefghijklmnopqrstuvwxyz';
+    var randomString = "";
+    for (var i = 0; i < 3; i++) {
+      randomString += BaseString[Math.floor(Math.random() * BaseString.length)];
+    }
+    randomString += new Date().getSeconds();
+    return randomString;
+  }
+</script>
+
+</html>

@@ -1,0 +1,70 @@
+<html>
+<head>
+  <title>Video chat(orner)</title>
+  <!--<link rel="stylesheet" href="style.css">-->
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
+  <script src="http://cdn.peerjs.com/0.3/peer.js"></script>
+</head>
+<body>
+  <div>
+    <!--audio部分-->
+    <audio id="player" autoplay></audio>
+    <div id="my-id1"></div>
+    <div id="my-id2"></div>
+    <div id="speak"></div>
+  </div>
+</body>
+<script>
+  // 以下jsの処理
+  window.AudioContext = window.AudioContext || window.webkitAudioContext;
+  navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+
+  // AudioContextのインスタンス作成
+  var context = new AudioContext();
+  var delay = context.createDelay(5.0);
+  var destination = context.destination;
+  var source = document.getElementById('player');
+  var medias = {
+    audio: true,
+    video: false
+  };
+  // PeerJSオブジェクト作成
+  var peer = new Peer(getRandomString(), {
+    key: 'nh93y733pow7y14i',
+    debug: 3
+  });
+
+  // PeerServerとの接続を確立すると指定された内容が実行
+  peer.on('open', function() {
+    // idの値を’my-id’idのタグに表示する.
+    $('#my-id1').text(peer.id);
+  });
+
+  // ネットワーク上の他のRemote Peerからの呼び出し(”call”)を受け取ると実行
+  peer.on('call', function(call) {
+    navigator.mediaDevices.getUserMedia(medias)
+      .then(function(stream) {
+        call.answer(stream);
+        call.on('stream', function(stream) {
+           // ストリーミングデータ受信処理
+           source.srcObject = stream;
+        });
+      }).catch(function(error) {
+        console.log(error);
+      });
+  });
+
+  // Broker IDを短く生成するためのメソッド
+  function getRandomString() {
+    // ランダムな文字列を生成する元の文字列
+    var BaseString = 'abcdefghijklmnopqrstuvwxyz';
+    var randomString = "";
+    for (var i = 0; i < 3; i++) {
+      randomString += BaseString[Math.floor(Math.random() * BaseString.length)];
+    }
+    randomString += new Date().getSeconds();
+    return randomString;
+  }
+
+</script>
+</html>
